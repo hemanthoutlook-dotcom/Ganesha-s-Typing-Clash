@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ganesha's Typing Clash</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --maroon-deep: #1B0A0D;
+            --maroon: #2B0F14;
+            --gold: #E8A33D;
+            --marigold: #F2C14E;
+            --vermillion: #C1440E;
+            --teal: #1F6F6F;
+            --ivory: #F4E9D8;
+            --ivory-dim: #cfc0a8;
+            --green: #5FAF6A;
+            --red: #D14B4B;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background:
+                radial-gradient(circle at 50% 15%, rgba(232, 163, 61, 0.10), transparent 55%),
+                var(--maroon-deep);
+            color: var(--ivory);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        #game {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 20px 16px 40px;
+            position: relative;
+        }
+
+        .title-row {
+            text-align: center;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .title-row h1 {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 800;
+            font-size: clamp(26px, 5vw, 38px);
+            margin: 0;
+            letter-spacing: 0.5px;
+            color: var(--marigold);
+            text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+        }
+
+        .title-row p {
+            margin: 6px 0 0;
+            color: var(--ivory-dim);
+            font-size: 14px;
+        }
+
+        .top-controls {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid rgba(232, 163, 61, 0.4);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--marigold);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .icon-btn:hover {
+            background: rgba(232, 163, 61, 0.18);
+        }
+
+        .level-strip {
+            text-align: center;
+            font-family: 'Baloo 2', cursive;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--marigold);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .level-strip .pip-row {
+            display: flex;
+            gap: 4px;
+        }
+
+        .level-strip .pip {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(244, 233, 216, 0.2);
+        }
+
+        .level-strip .pip.filled {
+            background: var(--marigold);
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+            margin-bottom: 10px;
+        }
+
+        .hp-block {
+            flex: 1;
+        }
+
+        .hp-block.enemy {
+            text-align: right;
+        }
+
+        .hp-name {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .hp-block.player .hp-name {
+            color: var(--gold);
+        }
+
+        .hp-block.enemy .hp-name {
+            color: var(--teal);
+        }
+
+        .hp-bar-track {
+            height: 14px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(244, 233, 216, 0.25);
+            overflow: hidden;
+        }
+
+        .hp-bar-fill {
+            height: 100%;
+            transition: width 0.35s ease;
+        }
+
+        .hp-block.player .hp-bar-fill {
+            background: linear-gradient(90deg, var(--vermillion), var(--gold));
+            margin-left: 0;
+        }
+
+        .hp-block.enemy .hp-bar-fill {
+            background: linear-gradient(90deg, var(--teal), #57c2c2);
+            margin-left: auto;
+        }
+
+        .midstats {
+            display: flex;
+            justify-content: center;
+            gap: 22px;
+            font-size: 13px;
+            color: var(--ivory-dim);
+            margin-bottom: 6px;
+        }
+
+        .midstats b {
+            color: var(--marigold);
+        }
+
+        .stage {
+            position: relative;
+            height: 240px;
+            border-radius: 14px;
+            background:
+                radial-gradient(circle at 20% 90%, rgba(232, 163, 61, 0.10), transparent 45%),
+                radial-gradient(circle at 80% 90%, rgba(31, 111, 111, 0.14), transparent 45%),
+                linear-gradient(180deg, rgba(232, 163, 61, 0.08), transparent 40%),
+                linear-gradient(0deg, rgba(0, 0, 0, 0.45), transparent 55%),
+                var(--maroon);
+            border: 1px solid rgba(232, 163, 61, 0.25);
+            overflow: hidden;
+        }
+
+        .stage::before {
+            /* soft twinkling backdrop dots (temple lamps) */
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(2px 2px at 12% 20%, rgba(242, 193, 78, 0.55), transparent),
+                radial-gradient(2px 2px at 30% 12%, rgba(242, 193, 78, 0.35), transparent),
+                radial-gradient(2px 2px at 55% 22%, rgba(242, 193, 78, 0.45), transparent),
+                radial-gradient(2px 2px at 72% 10%, rgba(242, 193, 78, 0.3), transparent),
+                radial-gradient(2px 2px at 88% 24%, rgba(242, 193, 78, 0.4), transparent);
+            animation: twinkle 3.2s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .stage::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 28px;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.55), transparent);
+        }
+
+        .fighter {
+            position: absolute;
+            bottom: 26px;
+            width: 130px;
+            height: 160px;
+            transition: transform 0.15s ease;
+        }
+
+        .fighter.player {
+            left: 8%;
+            animation: idleBobPlayer 2.1s ease-in-out infinite;
+        }
+
+        .fighter.enemy {
+            right: 8%;
+            transform: scaleX(-1);
+            animation: idleBobEnemy 1.8s ease-in-out infinite;
+        }
+
+        .fighter svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            overflow: visible;
+        }
+
+        @keyframes idleBobPlayer {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        @keyframes idleBobEnemy {
+
+            0%,
+            100% {
+                transform: scaleX(-1) translateY(0);
+            }
+
+            50% {
+                transform: scaleX(-1) translateY(-4px);
+            }
+        }
+
+        .fighter.player.attack {
+            animation: playerAttack 0.4s ease;
+        }
+
+        @keyframes playerAttack {
+            0% {
+                transform: translateX(0) translateY(0) rotate(0);
+            }
+
+            35% {
+                transform: translateX(48px) translateY(-4px) rotate(-6deg);
+            }
+
+            60% {
+                transform: translateX(48px) translateY(-4px) rotate(4deg);
+            }
+
+            100% {
+                transform: translateX(0) translateY(0) rotate(0);
+            }
+        }
+
+        .fighter.enemy.attack {
+            animation: enemyAttack 0.4s ease;
+        }
+
+        @keyframes enemyAttack {
+            0% {
+                transform: scaleX(-1) translateX(0) rotate(0);
+            }
+
+            35% {
+                transform: scaleX(-1) translateX(48px) rotate(6deg);
+            }
+
+            60% {
+                transform: scaleX(-1) translateX(48px) rotate(-4deg);
+            }
+
+            100% {
+                transform: scaleX(-1) translateX(0) rotate(0);
+            }
+        }
+
+        .fighter.hurt {
+            animation: hurtFlash 0.32s ease;
+        }
+
+        @keyframes hurtFlash {
+            0% {
+                filter: brightness(2.1) saturate(0.25);
+            }
+
+            100% {
+                filter: none;
+            }
+        }
+
+        .fighter.victory {
+            animation: victoryHop 0.6s ease-in-out 3;
+        }
+
+        @keyframes victoryHop {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-14px);
+            }
+        }
+
+        .fighter.enemy.defeatFall {
+            animation: defeatFall 0.7s ease forwards;
+        }
+
+        @keyframes defeatFall {
+            0% {
+                transform: scaleX(-1) translateY(0) rotate(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scaleX(-1) translateY(20px) rotate(18deg);
+                opacity: 0;
+            }
+        }
+
+        .floaty {
+            position: absolute;
+            font-family: 'Baloo 2', cursive;
+            font-weight: 800;
+            font-size: 20px;
+            pointer-events: none;
+            animation: floatUp 0.9s ease forwards;
+            z-index: 5;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-46px);
+            }
+        }
+
+        .spark {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(circle, var(--marigold), transparent 70%);
+            animation: sparkPop 0.5s ease forwards;
+            z-index: 4;
+        }
+
+        @keyframes sparkPop {
+            0% {
+                transform: scale(0.3);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(2.6);
+                opacity: 0;
+            }
+        }
+
+        .word-panel {
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .word-hint {
+            font-size: 12px;
+            color: var(--ivory-dim);
+            margin-bottom: 8px;
+            min-height: 16px;
+        }
+
+        .word-box {
+            display: inline-flex;
+            gap: 4px;
+            padding: 14px 22px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(232, 163, 61, 0.35);
+            font-family: 'Baloo 2', cursive;
+            font-weight: 700;
+            font-size: clamp(22px, 6vw, 32px);
+            letter-spacing: 2px;
+            min-width: 220px;
+            justify-content: center;
+        }
+
+        .word-box.shake {
+            animation: shake 0.25s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-6px);
+            }
+
+            75% {
+                transform: translateX(6px);
+            }
+        }
+
+        .letter {
+            color: var(--ivory-dim);
+            transition: color 0.1s ease;
+        }
+
+        .letter.done {
+            color: var(--green);
+        }
+
+        .letter.current {
+            color: var(--marigold);
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        .timer-track {
+            margin: 10px auto 0;
+            max-width: 280px;
+            height: 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: var(--gold);
+            width: 100%;
+        }
+
+        .timer-fill.danger {
+            background: var(--red);
+        }
+
+        #typeCatcher {
+            position: absolute;
+            opacity: 0;
+            height: 1px;
+            width: 1px;
+            pointer-events: none;
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 4, 5, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            border-radius: 14px;
+            z-index: 10;
+        }
+
+        .overlay h2 {
+            font-family: 'Baloo 2', cursive;
+            font-size: 28px;
+            margin: 0 0 8px;
+            color: var(--marigold);
+        }
+
+        .overlay p {
+            color: var(--ivory-dim);
+            margin: 0 0 18px;
+            font-size: 14px;
+            max-width: 340px;
+        }
+
+        .overlay button {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 22px;
+            border-radius: 8px;
+            border: none;
+            background: var(--vermillion);
+            color: var(--ivory);
+            cursor: pointer;
+        }
+
+        .overlay button:hover {
+            background: #a83a0c;
+        }
+
+        .overlay button.secondary {
+            background: transparent;
+            border: 1px solid var(--marigold);
+            color: var(--marigold);
+            margin-top: 8px;
+        }
+
+        .stage-wrap {
+            position: relative;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 12px;
+            color: var(--ivory-dim);
+            margin-top: 16px;
+            line-height: 1.6;
+        }
+
+        .start-screen {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 4, 5, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            border-radius: 14px;
+            z-index: 20;
+        }
+
+        .start-screen h2 {
+            font-family: 'Baloo 2', cursive;
+            color: var(--marigold);
+            font-size: 22px;
+            margin: 0 0 10px;
+        }
+
+        .start-screen p {
+            color: var(--ivory-dim);
+            font-size: 13px;
+            max-width: 360px;
+            margin: 0 0 16px;
+            line-height: 1.6;
+        }
+
+        .diff-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .diff-btn {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(232, 163, 61, 0.4);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--ivory);
+            cursor: pointer;
+        }
+
+        .diff-btn.active {
+            background: var(--vermillion);
+            border-color: var(--vermillion);
+        }
+
+        .start-screen button.go {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 11px 30px;
+            border-radius: 10px;
+            border: none;
+            background: var(--vermillion);
+            color: var(--ivory);
+            cursor: pointer;
+        }
+
+        .start-screen button.go:hover {
+            background: #a83a0c;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="game">
+        <div class="title-row">
+            <h1>Ganesha's Typing Clash</h1>
+            <p>Type the word to strike. Short words land quick jabs — long words swing the mace.</p>
+            <div class="top-controls">
+                <div class="icon-btn" id="muteBtn" title="Toggle sound">🔊</div>
+            </div>
+        </div>
+
+        <div class="level-strip">
+            <span id="levelLabel">Level 1</span>
+            <span class="pip-row" id="pipRow"></span>
+        </div>
+
+        <div class="hud">
+            <div class="hp-block player">
+                <div class="hp-name">Ganesha</div>
+                <div class="hp-bar-track">
+                    <div class="hp-bar-fill" id="playerHpFill" style="width:100%"></div>
+                </div>
+            </div>
+            <div class="hp-block enemy">
+                <div class="hp-name" id="enemyName">Vighna the Obstacle</div>
+                <div class="hp-bar-track">
+                    <div class="hp-bar-fill" id="enemyHpFill" style="width:100%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="midstats">
+            <div>Score: <b id="scoreVal">0</b></div>
+            <div>Combo: <b id="comboVal">0</b></div>
+        </div>
+
+        <div class="stage-wrap">
+            <div class="stage" id="stage">
+                <div class="fighter player" id="playerSprite">
+                    <svg viewBox="0 0 120 150">
+                        <defs>
+                            <radialGradient id="playerGlow" cx="50%" cy="35%" r="65%">
+                                <stop offset="0%" stop-color="#6f8fc9" />
+                                <stop offset="100%" stop-color="#4a6fa5" />
+                            </radialGradient>
+                        </defs>
+                        <!-- mouse vahana -->
+                        <g id="mouse">
+                            <ellipse cx="14" cy="140" rx="10" ry="6" fill="#8a7560" />
+                            <circle cx="6" cy="136" r="4" fill="#8a7560" />
+                            <circle cx="4" cy="134" r="1.1" fill="#1B0A0D" />
+                            <path d="M22 140 Q30 136 26 132" stroke="#8a7560" stroke-width="2" fill="none" />
+                        </g>
+                        <!-- mace -->
+                        <g id="playerWeapon">
+                            <rect x="86" y="68" width="7" height="48" rx="3" fill="#8a5a2b" />
+                            <circle cx="90" cy="64" r="11" fill="var(--gold)" />
+                            <circle cx="90" cy="64" r="11" fill="none" stroke="#a9721f" stroke-width="2" />
+                            <circle cx="84" cy="60" r="2" fill="#fff3d0" />
+                            <circle cx="96" cy="68" r="2" fill="#fff3d0" />
+                            <circle cx="90" cy="72" r="2" fill="#fff3d0" />
+                        </g>
+                        <!-- dhoti / lower body -->
+                        <path d="M32 108 Q55 150 78 108 L78 96 Q55 106 32 96 Z" fill="var(--vermillion)" />
+                        <path d="M36 110 L44 146 M55 114 L55 148 M74 110 L66 146" stroke="var(--marigold)" stroke-width="2" opacity="0.55" />
+                        <!-- body -->
+                        <ellipse cx="55" cy="102" rx="27" ry="28" fill="var(--vermillion)" />
+                        <ellipse cx="55" cy="96" rx="20" ry="9" fill="#d15420" opacity="0.5" />
+                        <!-- belly sash -->
+                        <path d="M32 100 Q55 112 78 100" stroke="var(--marigold)" stroke-width="3" fill="none" />
+                        <!-- arms -->
+                        <rect x="28" y="86" width="14" height="36" rx="7" fill="#3d5a80" />
+                        <rect x="70" y="76" width="14" height="36" rx="7" fill="#3d5a80" />
+                        <!-- bangles -->
+                        <rect x="27" y="112" width="16" height="4" rx="2" fill="var(--marigold)" />
+                        <rect x="69" y="100" width="16" height="4" rx="2" fill="var(--marigold)" />
+                        <!-- modak in left hand -->
+                        <path d="M26 120 L34 120 L30 112 Z" fill="#e8c98a" stroke="#b98f4a" stroke-width="1" />
+                        <!-- necklace -->
+                        <path d="M40 82 Q55 92 70 82" stroke="var(--marigold)" stroke-width="3" fill="none" />
+                        <circle cx="55" cy="90" r="3" fill="var(--marigold)" />
+                        <!-- ears -->
+                        <circle cx="22" cy="54" r="25" fill="#4a6fa5" />
+                        <circle cx="88" cy="54" r="25" fill="#4a6fa5" />
+                        <circle cx="22" cy="54" r="16" fill="#3d5a80" />
+                        <circle cx="88" cy="54" r="16" fill="#3d5a80" />
+                        <path d="M22 44 Q30 54 22 64" stroke="#5b7fb5" stroke-width="2" fill="none" opacity="0.6" />
+                        <path d="M88 44 Q80 54 88 64" stroke="#5b7fb5" stroke-width="2" fill="none" opacity="0.6" />
+                        <!-- head -->
+                        <circle cx="55" cy="57" r="31" fill="url(#playerGlow)" />
+                        <!-- third eye tilak -->
+                        <path d="M50 34 L60 34 L55 30 Z" fill="var(--vermillion)" />
+                        <!-- crown -->
+                        <path d="M28 36 L40 14 L55 26 L70 14 L82 36 Z" fill="var(--marigold)" />
+                        <path d="M28 36 L40 14 L55 26 L70 14 L82 36" fill="none" stroke="#c98a24" stroke-width="1.5" />
+                        <circle cx="55" cy="17" r="4.5" fill="var(--vermillion)" />
+                        <circle cx="40" cy="20" r="2.6" fill="#fff3d0" />
+                        <circle cx="70" cy="20" r="2.6" fill="#fff3d0" />
+                        <!-- trunk (animated sway) -->
+                        <path id="playerTrunk" d="M49 68 Q38 92 52 104 Q60 109 57 96" stroke="#3d5a80" stroke-width="11" fill="none" stroke-linecap="round" />
+                        <!-- eyes with blink -->
+                        <g id="playerEyes">
+                            <ellipse cx="45" cy="55" rx="3.6" ry="3.6" fill="#1B0A0D" />
+                            <ellipse cx="65" cy="55" rx="3.6" ry="3.6" fill="#1B0A0D" />
+                            <circle cx="46.3" cy="53.7" r="1" fill="#fff" opacity="0.8" />
+                            <circle cx="66.3" cy="53.7" r="1" fill="#fff" opacity="0.8" />
+                            <animate xlink:href="#playerEyes" attributeName="opacity" values="1;1;1;0.05;1" dur="3.6s" repeatCount="indefinite" />
+                        </g>
+                        <!-- tusk -->
+                        <path d="M68 68 L77 75" stroke="#f4e9d8" stroke-width="4.5" stroke-linecap="round" />
+                        <!-- soft cheek blush -->
+                        <ellipse cx="34" cy="64" rx="4.5" ry="3" fill="#c1440e" opacity="0.35" />
+                        <ellipse cx="76" cy="64" rx="4.5" ry="3" fill="#c1440e" opacity="0.35" />
+                    </svg>
+                </div>
+
+                <div class="fighter enemy" id="enemySprite">
+                    <svg viewBox="0 0 120 150">
+                        <defs>
+                            <radialGradient id="enemyGlow" cx="50%" cy="35%" r="65%">
+                                <stop offset="0%" stop-color="#3ba5a5" />
+                                <stop offset="100%" stop-color="#2f8f8f" />
+                            </radialGradient>
+                        </defs>
+                        <!-- fire aura -->
+                        <ellipse cx="55" cy="128" rx="34" ry="8" fill="var(--vermillion)" opacity="0.25" />
+                        <!-- club -->
+                        <g id="enemyWeapon">
+                            <rect x="84" y="60" width="9" height="46" rx="3" fill="#5a3a1a" />
+                            <polygon points="90,48 100,58 90,70 80,58" fill="#3a1a1a" />
+                            <circle cx="83" cy="52" r="2" fill="#8a5a2b" />
+                            <circle cx="97" cy="52" r="2" fill="#8a5a2b" />
+                            <circle cx="90" cy="46" r="2" fill="#8a5a2b" />
+                        </g>
+                        <!-- lower body / tail -->
+                        <path d="M32 108 Q55 148 78 108 L78 92 Q55 104 32 92 Z" fill="var(--teal)" />
+                        <path d="M84 118 Q100 126 96 140" stroke="#175a5a" stroke-width="6" fill="none" stroke-linecap="round" />
+                        <polygon points="94,138 100,144 96,146" fill="#c93b3b" />
+                        <!-- body -->
+                        <ellipse cx="55" cy="102" rx="25" ry="30" fill="url(#enemyGlow)" />
+                        <path d="M40 78 Q55 88 70 78" stroke="#0d2b2b" stroke-width="3" fill="none" opacity="0.7" />
+                        <!-- belt with skull -->
+                        <path d="M31 102 Q55 112 79 102" stroke="#0d2b2b" stroke-width="4" fill="none" />
+                        <circle cx="55" cy="106" r="5" fill="#e8dcc0" />
+                        <circle cx="53" cy="105" r="1.2" fill="#1B0A0D" />
+                        <circle cx="57" cy="105" r="1.2" fill="#1B0A0D" />
+                        <!-- arms -->
+                        <rect x="30" y="84" width="13" height="34" rx="6" fill="#175a5a" />
+                        <rect x="68" y="72" width="13" height="34" rx="6" fill="#175a5a" />
+                        <!-- claw fingers -->
+                        <path d="M30 118 L26 124 M35 120 L33 126 M40 120 L40 126" stroke="#0d2b2b" stroke-width="2" stroke-linecap="round" />
+                        <!-- ridged back spikes -->
+                        <path d="M35 76 L38 66 L42 76 M50 72 L53 60 L56 72 M64 74 L67 63 L70 74" fill="#c93b3b" opacity="0.85" />
+                        <!-- head -->
+                        <circle cx="55" cy="54" r="27" fill="url(#enemyGlow)" />
+                        <!-- forehead ridge -->
+                        <path d="M34 44 Q55 34 76 44" stroke="#0d2b2b" stroke-width="2" fill="none" opacity="0.6" />
+                        <!-- horns -->
+                        <path d="M34 40 L20 12 L42 32 Z" fill="#c93b3b" />
+                        <path d="M76 40 L90 12 L68 32 Z" fill="#c93b3b" />
+                        <path d="M34 40 L20 12 L42 32" fill="none" stroke="#8f1f1f" stroke-width="1.5" />
+                        <path d="M76 40 L90 12 L68 32" fill="none" stroke="#8f1f1f" stroke-width="1.5" />
+                        <!-- eyes glowing with blink -->
+                        <g id="enemyEyes">
+                            <ellipse cx="45" cy="53" rx="4.2" ry="4.2" fill="#ffcf4d" />
+                            <ellipse cx="65" cy="53" rx="4.2" ry="4.2" fill="#ffcf4d" />
+                            <circle cx="45" cy="53" r="1.6" fill="#7a4a00" />
+                            <circle cx="65" cy="53" r="1.6" fill="#7a4a00" />
+                            <animate xlink:href="#enemyEyes" attributeName="opacity" values="1;1;0.05;1;1" dur="2.6s" repeatCount="indefinite" />
+                        </g>
+                        <!-- mouth with fangs -->
+                        <path d="M42 66 Q55 76 68 66" stroke="#0d2b2b" stroke-width="4" fill="none" stroke-linecap="round" />
+                        <path d="M47 68 L49 74 L51 68 Z" fill="#f4e9d8" />
+                        <path d="M59 68 L61 74 L63 68 Z" fill="#f4e9d8" />
+                    </svg>
+                </div>
+            </div>
+
+            <div id="levelUpOverlay" class="overlay" style="display:none;">
+                <h2 id="levelUpTitle">Obstacle Cleared!</h2>
+                <p id="levelUpMsg">Ganesha's blessing clears the way.</p>
+                <button onclick="beginNextLevel()">Continue</button>
+            </div>
+            <div id="winOverlay" class="overlay" style="display:none;">
+                <h2>All Obstacles Cleared!</h2>
+                <p id="winMsg">Ganesha's blessing clears every path. Final score noted below.</p>
+                <button onclick="openStartScreen()">Play Again</button>
+            </div>
+            <div id="loseOverlay" class="overlay" style="display:none;">
+                <h2>Ganesha Stumbles</h2>
+                <p id="loseMsg">The obstacle proved too fast this time. Steady your fingers and try again.</p>
+                <button onclick="retryLevel()">Retry Level</button>
+                <button class="secondary" onclick="openStartScreen()">Restart Run</button>
+            </div>
+
+            <div id="startScreen" class="start-screen">
+                <h2>Choose Your Path</h2>
+                <p>Type each word before the timer runs out to strike. Combos raise your damage but reset if you're too slow. Every level brings a tougher obstacle and a tighter clock.</p>
+                <div class="diff-row" id="diffRow">
+                    <button class="diff-btn" data-diff="easy">Easy</button>
+                    <button class="diff-btn active" data-diff="normal">Normal</button>
+                    <button class="diff-btn" data-diff="hard">Hard</button>
+                </div>
+                <button class="go" onclick="beginRun()">Begin</button>
+            </div>
+        </div>
+
+        <div class="word-panel">
+            <div class="word-hint" id="wordHint">Click Begin, then start typing the word below</div>
+            <div class="word-box" id="wordBox"></div>
+            <div class="timer-track">
+                <div class="timer-fill" id="timerFill"></div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            Short words (OM, GADA, MODAK) throw quick jabs. Long words (VAKRATUNDA, VIGHNAHARTA) swing the mace for heavy damage.<br>
+            Words get longer and the clock gets tighter as your combo and level grow — miss the timer and the streak resets.
+        </div>
+    </div>
+
+    <input id="typeCatcher" autocomplete="off" autocapitalize="off" spellcheck="false">
+
+    <script>
+        const shortWords = ["OM", "GADA", "MODAK", "DIYA", "LOTUS", "MOUSE", "TUSK", "LADDOO", "BELLY", "DANCE"];
+        const longWords = ["GANAPATI", "VAKRATUNDA", "VIGHNAHARTA", "EKADANTA", "LAMBODARA", "GAJANANA", "VINAYAKA", "HERAMBA", "SIDDHIVINAYAK"];
+
+        const levels = [{
+                name: "Vighna Pup",
+                hp: 70,
+                timeMult: 1.30,
+                longStart: 0.10,
+                longStep: 0.06,
+                longCap: 0.50,
+                hue: 0
+            },
+            {
+                name: "Vighna the Obstacle",
+                hp: 95,
+                timeMult: 1.10,
+                longStart: 0.15,
+                longStep: 0.07,
+                longCap: 0.60,
+                hue: 0
+            },
+            {
+                name: "Vighna the Fierce",
+                hp: 120,
+                timeMult: 0.92,
+                longStart: 0.20,
+                longStep: 0.08,
+                longCap: 0.70,
+                hue: -18
+            },
+            {
+                name: "Vighnasura",
+                hp: 150,
+                timeMult: 0.78,
+                longStart: 0.25,
+                longStep: 0.09,
+                longCap: 0.80,
+                hue: -36
+            },
+            {
+                name: "Maha Vighnasura",
+                hp: 190,
+                timeMult: 0.65,
+                longStart: 0.30,
+                longStep: 0.10,
+                longCap: 0.90,
+                hue: -54
+            },
+        ];
+
+        const diffSettings = {
+            easy: {
+                timeScale: 1.22,
+                playerHeal: 28
+            },
+            normal: {
+                timeScale: 1.0,
+                playerHeal: 18
+            },
+            hard: {
+                timeScale: 0.82,
+                playerHeal: 8
+            },
+        };
+        let difficulty = 'normal';
+
+        let playerHp, enemyHp, score, combo, currentWord, typedIndex, timeLimit, timeLeft, timerInterval, gameOver;
+        let levelIndex = 0;
+        let enemyHpMax = 100;
+
+        const playerHpFill = document.getElementById('playerHpFill');
+        const enemyHpFill = document.getElementById('enemyHpFill');
+        const scoreVal = document.getElementById('scoreVal');
+        const comboVal = document.getElementById('comboVal');
+        const wordBox = document.getElementById('wordBox');
+        const wordHint = document.getElementById('wordHint');
+        const timerFill = document.getElementById('timerFill');
+        const stage = document.getElementById('stage');
+        const playerSprite = document.getElementById('playerSprite');
+        const enemySprite = document.getElementById('enemySprite');
+        const enemyNameEl = document.getElementById('enemyName');
+        const levelLabel = document.getElementById('levelLabel');
+        const pipRow = document.getElementById('pipRow');
+        const winOverlay = document.getElementById('winOverlay');
+        const loseOverlay = document.getElementById('loseOverlay');
+        const levelUpOverlay = document.getElementById('levelUpOverlay');
+        const winMsg = document.getElementById('winMsg');
+        const loseMsg = document.getElementById('loseMsg');
+        const levelUpTitle = document.getElementById('levelUpTitle');
+        const levelUpMsg = document.getElementById('levelUpMsg');
+        const typeCatcher = document.getElementById('typeCatcher');
+        const startScreen = document.getElementById('startScreen');
+        const muteBtn = document.getElementById('muteBtn');
+        const diffRow = document.getElementById('diffRow');
+
+        /* ---------------- Audio: synthesized music + SFX, no external files ---------------- */
+        const Audio = (() => {
+            let ctx = null;
+            let musicGain = null;
+            let sfxGain = null;
+            let muted = false;
+            let musicTimer = null;
+            let musicStep = 0;
+
+            const scale = [196.00, 220.00, 246.94, 293.66, 329.63, 392.00, 440.00]; // G pentatonic-ish, temple-bell flavor
+
+            function ensureCtx() {
+                if (!ctx) {
+                    ctx = new(window.AudioContext || window.webkitAudioContext)();
+                    musicGain = ctx.createGain();
+                    musicGain.gain.value = 0.05;
+                    musicGain.connect(ctx.destination);
+                    sfxGain = ctx.createGain();
+                    sfxGain.gain.value = 0.16;
+                    sfxGain.connect(ctx.destination);
+                }
+                if (ctx.state === 'suspended') ctx.resume();
+            }
+
+            function pluckNote(freq, time, dur, gainNode, wave) {
+                const osc = ctx.createOscillator();
+                const g = ctx.createGain();
+                osc.type = wave || 'triangle';
+                osc.frequency.setValueAtTime(freq, time);
+                g.gain.setValueAtTime(0.0001, time);
+                g.gain.exponentialRampToValueAtTime(1, time + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+                osc.connect(g);
+                g.connect(gainNode);
+                osc.start(time);
+                osc.stop(time + dur + 0.05);
+            }
+
+            function scheduleMusicLoop() {
+                clearTimeout(musicTimer);
+                if (muted || !ctx) return;
+                const stepDur = 0.34;
+                const now = ctx.currentTime;
+                // drone
+                const droneIdx = musicStep % 8;
+                const patternRoot = [0, 2, 4, 2, 0, 3, 5, 3];
+                const patternBell = [4, -1, 6, -1, 4, -1, 2, -1];
+                const rootFreq = scale[patternRoot[droneIdx]] / 2;
+                pluckNote(rootFreq, now, stepDur * 1.4, musicGain, 'sine');
+                const bellIdx = patternBell[droneIdx];
+                if (bellIdx >= 0) {
+                    pluckNote(scale[bellIdx], now + 0.03, stepDur * 0.9, musicGain, 'triangle');
+                }
+                musicStep++;
+                musicTimer = setTimeout(scheduleMusicLoop, stepDur * 1000);
+            }
+
+            function startMusic() {
+                ensureCtx();
+                if (!muted) scheduleMusicLoop();
+            }
+
+            function stopMusic() {
+                clearTimeout(musicTimer);
+            }
+
+            function toggleMute() {
+                muted = !muted;
+                if (ctx) {
+                    musicGain.gain.value = muted ? 0 : 0.05;
+                    sfxGain.gain.value = muted ? 0 : 0.16;
+                }
+                if (muted) stopMusic();
+                else scheduleMusicLoop();
+                return muted;
+            }
+
+            function jab() {
+                ensureCtx();
+                const t = ctx.currentTime;
+                pluckNote(660, t, 0.12, sfxGain, 'square');
+                pluckNote(880, t + 0.03, 0.1, sfxGain, 'square');
+            }
+
+            function heavy() {
+                ensureCtx();
+                const t = ctx.currentTime;
+                pluckNote(140, t, 0.28, sfxGain, 'sawtooth');
+                pluckNote(90, t + 0.02, 0.3, sfxGain, 'sine');
+                pluckNote(1200, t, 0.06, sfxGain, 'square');
+            }
+
+            function fail() {
+                ensureCtx();
+                const t = ctx.currentTime;
+                pluckNote(300, t, 0.18, sfxGain, 'sawtooth');
+                pluckNote(200, t + 0.09, 0.22, sfxGain, 'sawtooth');
+            }
+
+            function mistype() {
+                ensureCtx();
+                const t = ctx.currentTime;
+                pluckNote(180, t, 0.08, sfxGain, 'square');
+            }
+
+            function levelUp() {
+                ensureCtx();
+                const t = ctx.currentTime;
+                [523, 659, 784, 1046].forEach((f, i) => pluckNote(f, t + i * 0.09, 0.22, sfxGain, 'triangle'));
+            }
+
+            function victory() {
+                ensureCtx();
+                const t = ctx.currentTime;
+                [392, 523, 659, 784, 1046].forEach((f, i) => pluckNote(f, t + i * 0.1, 0.3, sfxGain, 'triangle'));
+            }
+
+            function defeat() {
+                ensureCtx();
+                const t = ctx.currentTime;
+                [392, 330, 262, 196].forEach((f, i) => pluckNote(f, t + i * 0.16, 0.3, sfxGain, 'sawtooth'));
+            }
+
+            return {
+                startMusic,
+                stopMusic,
+                toggleMute,
+                jab,
+                heavy,
+                fail,
+                mistype,
+                levelUp,
+                victory,
+                defeat,
+                ensureCtx
+            };
+        })();
+
+        muteBtn.addEventListener('click', () => {
+            const isMuted = Audio.toggleMute();
+            muteBtn.textContent = isMuted ? '🔇' : '🔊';
+        });
+
+        diffRow.addEventListener('click', (e) => {
+            const btn = e.target.closest('.diff-btn');
+            if (!btn) return;
+            difficulty = btn.dataset.diff;
+            [...diffRow.children].forEach(b => b.classList.toggle('active', b === btn));
+        });
+
+        /* ---------------- Level / HUD setup ---------------- */
+        function buildPips() {
+            pipRow.innerHTML = '';
+            levels.forEach((_, i) => {
+                const p = document.createElement('span');
+                p.className = 'pip' + (i <= levelIndex ? ' filled' : '');
+                pipRow.appendChild(p);
+            });
+        }
+
+        function applyEnemyTint() {
+            const hue = levels[levelIndex].hue;
+            enemySprite.style.filter = hue ? `hue-rotate(${hue}deg) saturate(1.15)` : 'none';
+        }
+
+        function pickWord() {
+            const cfg = levels[levelIndex];
+            const longChance = Math.min(cfg.longStart + combo * cfg.longStep, cfg.longCap);
+            const pool = Math.random() < longChance ? longWords : shortWords;
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function renderWord() {
+            wordBox.innerHTML = '';
+            [...currentWord].forEach((ch, i) => {
+                const span = document.createElement('span');
+                span.textContent = ch;
+                span.className = 'letter' + (i < typedIndex ? ' done' : (i === typedIndex ? ' current' : ''));
+                wordBox.appendChild(span);
+            });
+        }
+
+        function newWord() {
+            currentWord = pickWord();
+            typedIndex = 0;
+            const cfg = levels[levelIndex];
+            const diffScale = diffSettings[difficulty].timeScale;
+            const base = currentWord.length <= 5 ? 2600 : 4600;
+            timeLimit = base * cfg.timeMult * diffScale;
+            timeLeft = timeLimit;
+            renderWord();
+            timerFill.classList.remove('danger');
+            updateTimerBar();
+        }
+
+        function updateTimerBar() {
+            const pct = Math.max(0, (timeLeft / timeLimit) * 100);
+            timerFill.style.width = pct + '%';
+            timerFill.classList.toggle('danger', pct < 25);
+        }
+
+        function startTimerLoop() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (gameOver) return;
+                timeLeft -= 50;
+                updateTimerBar();
+                if (timeLeft <= 0) {
+                    onWordFailed();
+                }
+            }, 50);
+        }
+
+        function floatText(el, text, color) {
+            const f = document.createElement('div');
+            f.className = 'floaty';
+            f.textContent = text;
+            f.style.color = color;
+            const rect = el.getBoundingClientRect();
+            const stageRect = stage.getBoundingClientRect();
+            f.style.left = (rect.left - stageRect.left + rect.width / 2 - 20) + 'px';
+            f.style.top = (rect.top - stageRect.top) + 'px';
+            stage.appendChild(f);
+            setTimeout(() => f.remove(), 900);
+        }
+
+        function spawnSpark(el) {
+            const rect = el.getBoundingClientRect();
+            const stageRect = stage.getBoundingClientRect();
+            const s = document.createElement('div');
+            s.className = 'spark';
+            s.style.left = (rect.left - stageRect.left + rect.width * 0.4) + 'px';
+            s.style.top = (rect.top - stageRect.top + rect.height * 0.35) + 'px';
+            stage.appendChild(s);
+            setTimeout(() => s.remove(), 500);
+        }
+
+        function onWordCompleted() {
+            const isHeavy = currentWord.length > 5;
+            const base = isHeavy ? 20 : 9;
+            const comboMult = 1 + Math.min(combo, 6) * 0.12;
+            const dmg = Math.round(base * comboMult);
+
+            enemyHp = Math.max(0, enemyHp - dmg);
+            combo += 1;
+            score += dmg;
+            updateHud();
+
+            playerSprite.classList.remove('attack');
+            void playerSprite.offsetWidth;
+            playerSprite.classList.add('attack');
+            enemySprite.classList.remove('hurt');
+            void enemySprite.offsetWidth;
+            enemySprite.classList.add('hurt');
+
+            spawnSpark(enemySprite);
+            floatText(enemySprite, '-' + dmg, isHeavy ? '#F2C14E' : '#5FAF6A');
+            wordHint.textContent = isHeavy ? 'Heavy strike!' : 'Quick jab!';
+            isHeavy ? Audio.heavy() : Audio.jab();
+
+            if (enemyHp <= 0) {
+                handleLevelClear();
+                return;
+            }
+            newWord();
+        }
+
+        function onWordFailed() {
+            clearInterval(timerInterval);
+            combo = 0;
+            const dmg = 10;
+            playerHp = Math.max(0, playerHp - dmg);
+            updateHud();
+
+            enemySprite.classList.remove('attack');
+            void enemySprite.offsetWidth;
+            enemySprite.classList.add('attack');
+            playerSprite.classList.remove('hurt');
+            void playerSprite.offsetWidth;
+            playerSprite.classList.add('hurt');
+
+            floatText(playerSprite, '-' + dmg, '#D14B4B');
+            wordHint.textContent = 'Too slow — combo reset!';
+            Audio.fail();
+
+            if (playerHp <= 0) {
+                endRun(false);
+                return;
+            }
+            newWord();
+            startTimerLoop();
+        }
+
+        function updateHud() {
+            playerHpFill.style.width = playerHp + '%';
+            enemyHpFill.style.width = Math.max(0, (enemyHp / enemyHpMax) * 100) + '%';
+            scoreVal.textContent = score;
+            comboVal.textContent = combo;
+            levelLabel.textContent = 'Level ' + (levelIndex + 1) + ' — ' + levels[levelIndex].name;
+        }
+
+        function handleLevelClear() {
+            gameOver = true;
+            clearInterval(timerInterval);
+            enemySprite.classList.add('defeatFall');
+            playerSprite.classList.add('victory');
+            Audio.levelUp();
+
+            const isLastLevel = levelIndex >= levels.length - 1;
+            setTimeout(() => {
+                if (isLastLevel) {
+                    winMsg.textContent = 'Final score: ' + score + '. Longest combo streak: ' + combo + '. Every obstacle Ganesha faced has been cleared!';
+                    Audio.victory();
+                    winOverlay.style.display = 'flex';
+                } else {
+                    levelUpTitle.textContent = levels[levelIndex].name + ' Cleared!';
+                    levelUpMsg.textContent = 'Score so far: ' + score + '. The path ahead grows tighter — ready yourself for ' + levels[levelIndex + 1].name + '.';
+                    levelUpOverlay.style.display = 'flex';
+                }
+            }, 650);
+        }
+
+        function beginNextLevel() {
+            levelUpOverlay.style.display = 'none';
+            levelIndex += 1;
+            startLevel(false);
+        }
+
+        function retryLevel() {
+            loseOverlay.style.display = 'none';
+            startLevel(true);
+        }
+
+        function startLevel(resetHpFull) {
+            gameOver = false;
+            enemySprite.classList.remove('defeatFall', 'hurt', 'attack');
+            playerSprite.classList.remove('victory', 'hurt', 'attack');
+            const cfg = levels[levelIndex];
+            enemyHpMax = cfg.hp;
+            enemyHp = cfg.hp;
+            enemyNameEl.textContent = cfg.name;
+            applyEnemyTint();
+            buildPips();
+
+            if (resetHpFull) {
+                playerHp = 100;
+            } else {
+                const heal = diffSettings[difficulty].playerHeal;
+                playerHp = Math.min(100, playerHp + heal);
+            }
+            combo = 0;
+            updateHud();
+            newWord();
+            startTimerLoop();
+            typeCatcher.focus();
+        }
+
+        function endRun(won) {
+            gameOver = true;
+            clearInterval(timerInterval);
+            if (won) {
+                winMsg.textContent = 'Final score: ' + score + '. Longest combo streak: ' + combo + '.';
+                Audio.victory();
+                winOverlay.style.display = 'flex';
+            } else {
+                loseMsg.textContent = 'Final score: ' + score + ' — fell at ' + levels[levelIndex].name + '. Give it another go!';
+                Audio.defeat();
+                loseOverlay.style.display = 'flex';
+            }
+        }
+
+        function handleKey(key) {
+            if (gameOver) return;
+            if (!/^[a-zA-Z]$/.test(key)) return;
+            const expected = currentWord[typedIndex];
+            if (key.toUpperCase() === expected) {
+                typedIndex += 1;
+                renderWord();
+                if (typedIndex >= currentWord.length) {
+                    onWordCompleted();
+                }
+            } else {
+                wordBox.classList.remove('shake');
+                void wordBox.offsetWidth;
+                wordBox.classList.add('shake');
+                Audio.mistype();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key.length === 1) handleKey(e.key);
+        });
+
+        document.addEventListener('click', () => typeCatcher.focus());
+        typeCatcher.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (val.length) {
+                handleKey(val[val.length - 1]);
+            }
+            e.target.value = '';
+        });
+
+        function openStartScreen() {
+            winOverlay.style.display = 'none';
+            loseOverlay.style.display = 'none';
+            levelUpOverlay.style.display = 'none';
+            startScreen.style.display = 'flex';
+            gameOver = true;
+            clearInterval(timerInterval);
+            wordHint.textContent = 'Click Begin, then start typing the word below';
+            wordBox.innerHTML = '';
+            timerFill.style.width = '100%';
+        }
+
+        function beginRun() {
+            Audio.ensureCtx();
+            Audio.startMusic();
+            startScreen.style.display = 'none';
+            levelIndex = 0;
+            score = 0;
+            playerHp = 100;
+            startLevel(true);
+        }
+
+        // initial state: show start screen, no game running yet
+        levelIndex = 0;
+        score = 0;
+        playerHp = 100;
+        enemyHp = levels[0].hp;
+        enemyHpMax = levels[0].hp;
+        combo = 0;
+        gameOver = true;
+        enemyNameEl.textContent = levels[0].name;
+        applyEnemyTint();
+        buildPips();
+        updateHud();
+        currentWord = "READY";
+        typedIndex = 0;
+        renderWord();
+    </script>
+
+</body>
+
+</html>
