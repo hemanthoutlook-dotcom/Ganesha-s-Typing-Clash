@@ -1,0 +1,14 @@
+Ganesha’s Typing Clash turns typing practice into a one‑on‑one fighting game built around a Ganesh Chaturthi theme:
+
+Combat as feedback — the player (Ganesha) and an enemy (“Vighna,” an obstacle demon) face off on an HP‑bar duel. 
+Every correctly and fully typed word lands a hit on the enemy; every word that times out costs the player HP.
+Animated sprites, hit sparks, and floating damage numbers turn
+“did I type that right and fast enough” into immediate visual combat feedback instead of a silent score tally.
+Skill‑weighted damage — short words throw quick, low‑damage jabs; long/complex words
+(like VIGHNAHARTA or SIDDHIVINAYAK) trigger heavy mace swings for big damage. 
+A combo multiplier rewards consecutive clean hits and resets on a miss, so the mechanics naturally push toward sustained speed and accuracy rather than one lucky fast word.
+Auto‑scaling difficulty — five sequential levels raise enemy HP, shrink the per‑word timer, and increase the odds of drawing longer words as the player’s combo grows, so challenge ramps with demonstrated skill instead of being fixed.
+An Easy/Normal/Hard selector further tunes timer length and post‑level healing for different skill levels.
+Zero‑friction delivery — the whole game (art, animation, music, and sound effects) is a single self‑contained HTML file using inline SVG and Web Audio synthesis, 
+with no external assets, installs, or backend. It opens and runs instantly in any browser, which also makes it easy to re‑skin — e.g., 
+swapping in festival‑style percussion/bell audio and punchier wind‑up/lunge/impact animations — without touching the underlying typing logic.
